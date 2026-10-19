@@ -5,7 +5,6 @@ import { FormsModule } from '@angular/forms';
 
 interface Chunk { chunk_id?: string; text: string; metadata?: Record<string, unknown>; }
 interface ApiResult { document?: { filename?: string; document_id?: string; file_type?: string }; chunks: Chunk[]; total_chunks?: number; config?: { strategy?: string; chunk_size?: number; overlap?: number }; recommendation?: { selected_strategy?: string; rationale?: string; candidate_scores?: Record<string, number> }; warnings?: string[]; trace?: unknown; }
-private readonly apiUrl = 'https://gp-intelligent-document-chunker.onrender.com';
 @Component({ selector: 'app-root', standalone: true, imports: [CommonModule, FormsModule], template: `
 <div class="app-shell">
   <header class="topbar"><div class="brand"><div class="brand-mark">C</div><span>Intelligent Document Chunker Acceler-AI-te 2026<span class="brand-dot">.</span></span><span class="sdk-tag">Beta</span></div><div class="top-actions"><span class="status-dot"></span><span>Connected</span><span class="divider"></span><button class="icon-btn" title="API status" (click)="checkHealth()">↻</button><span class="avatar">DC</span></div></header>
@@ -24,18 +23,78 @@ private readonly apiUrl = 'https://gp-intelligent-document-chunker.onrender.com'
 </div>
 ` })
 export class AppComponent {
-  file: File | null = null; strategy = 'auto'; chunkSize = 1000; overlap = 150; busy = false; result: ApiResult | null = null; isPreview = false; error = ''; notice = ''; activeTab = 'chunk';
+  private readonly apiUrl =
+    'https://gp-intelligent-document-chunker.onrender.com';
+
+  file: File | null = null;
+  strategy = 'auto';
+  chunkSize = 1000;
+  overlap = 150;
+  busy = false;
+  result: ApiResult | null = null;
+  isPreview = false;
+  error = '';
+  notice = '';
+  activeTab = 'chunk';
+
   constructor(private http: HttpClient) {}
-  onFile(event: Event) { const input = event.target as HTMLInputElement; this.file = input.files?.[0] ?? null; this.result = null; this.error = ''; this.notice = ''; }
-  formatSize(bytes: number) { return bytes < 1024 ? `${bytes} B` : bytes < 1048576 ? `${(bytes / 1024).toFixed(1)} KB` : `${(bytes / 1048576).toFixed(2)} MB`; }
+
   run(preview: boolean) {
     if (!this.file) return;
-    if (Number(this.overlap) > Number(this.chunkSize) * .5) { this.error = 'Overlap must be no more than 50% of the chunk size.'; return; }
-    this.busy = true; this.error = ''; this.notice = ''; const body = new FormData(); body.append('file', this.file); body.append('strategy', this.strategy); body.append('chunk_size', String(this.chunkSize)); body.append('overlap', String(this.overlap)); if (preview) body.append('preview_count', '8');
-    this.http.post<ApiResult>(preview ? '`${this.apiUrl}/v1/preview' : '`${this.apiUrl}/v1/chunk', body).subscribe({ next: data => { this.result = data; this.isPreview = preview; this.busy = false; this.notice = preview ? 'Preview generated. Review boundaries before processing the full document.' : 'Document processed successfully. Output is ready to export.'; }, error: (e: HttpErrorResponse) => { this.busy = false; this.error = e.error?.detail || 'Could not process the document. Check that the API server is running.'; } });
+
+    if (Number(this.overlap) > Number(this.chunkSize) * 0.5) {
+      this.error = 'Overlap must be no more than 50% of the chunk size.';
+      return;
+    }
+
+    this.busy = true;
+    this.error = '';
+    this.notice = '';
+
+    const body = new FormData();
+    body.append('file', this.file);
+    body.append('strategy', this.strategy);
+    body.append('chunk_size', String(this.chunkSize));
+    body.append('overlap', String(this.overlap));
+
+    if (preview) {
+      body.append('preview_count', '8');
+    }
+
+    const endpoint = preview
+      ? `${this.apiUrl}/v1/preview`
+      : `${this.apiUrl}/v1/chunk`;
+
+    this.http.post<ApiResult>(endpoint, body).subscribe({
+      next: (data) => {
+        this.result = data;
+        this.isPreview = preview;
+        this.busy = false;
+        this.notice = preview
+          ? 'Preview generated successfully.'
+          : 'Document processed successfully.';
+      },
+      error: (e: HttpErrorResponse) => {
+        this.busy = false;
+        this.error =
+          e.error?.detail ||
+          `API request failed with status ${e.status}. Check the backend and CORS configuration.`;
+      }
+    });
   }
-  metadataEntries(meta?: Record<string, unknown>): [string, unknown][] { return Object.entries(meta || {}).filter(([,v]) => v !== null && v !== undefined && typeof v !== 'object'); }
-  downloadJson() { if (!this.result) return; const blob = new Blob([JSON.stringify(this.result, null, 2)], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${this.file?.name || 'document'}.chunks.json`; a.click(); URL.revokeObjectURL(url); }
-  copyJson() { if (!this.result) return; navigator.clipboard.writeText(JSON.stringify(this.result, null, 2)).then(() => this.notice = 'JSON copied to clipboard.').catch(() => this.error = 'Clipboard access was blocked by the browser.'); }
-  checkHealth() { this.http.get<{status:string}>('/health').subscribe({next: () => this.notice = 'API connection is healthy.', error: () => this.error = 'API is unreachable. Start the FastAPI server first.'}); }
+
+  checkHealth() {
+    this.http.get<{ status: string }>(
+      `${this.apiUrl}/health`
+    ).subscribe({
+      next: () => {
+        this.notice = 'API connection is healthy.';
+        this.error = '';
+      },
+      error: (e: HttpErrorResponse) => {
+        this.error =
+          `API health check failed (${e.status}). Check the backend URL and endpoint.`;
+      }
+    });
+  }
 }
