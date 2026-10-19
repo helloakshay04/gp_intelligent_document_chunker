@@ -13,7 +13,8 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
-)app.mount("/ui",StaticFiles(directory=UI_DIR),name="ui")
+)
+app.mount("/ui",StaticFiles(directory=UI_DIR),name="ui")
 @app.middleware("http")
 async def request_observability(request:Request,call_next):
     trace_id=request.headers.get("x-trace-id") or uuid.uuid4().hex[:16]; request.state.trace_id=trace_id; started=time.perf_counter()
