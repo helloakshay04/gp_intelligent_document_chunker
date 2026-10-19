@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 
 interface Chunk { chunk_id?: string; text: string; metadata?: Record<string, unknown>; }
 interface ApiResult { document?: { filename?: string; document_id?: string; file_type?: string }; chunks: Chunk[]; total_chunks?: number; config?: { strategy?: string; chunk_size?: number; overlap?: number }; recommendation?: { selected_strategy?: string; rationale?: string; candidate_scores?: Record<string, number> }; warnings?: string[]; trace?: unknown; }
+private readonly apiUrl = 'https://gp-intelligent-document-chunker.onrender.com';
 @Component({ selector: 'app-root', standalone: true, imports: [CommonModule, FormsModule], template: `
 <div class="app-shell">
   <header class="topbar"><div class="brand"><div class="brand-mark">C</div><span>Intelligent Document Chunker Acceler-AI-te 2026<span class="brand-dot">.</span></span><span class="sdk-tag">Beta</span></div><div class="top-actions"><span class="status-dot"></span><span>Connected</span><span class="divider"></span><button class="icon-btn" title="API status" (click)="checkHealth()">↻</button><span class="avatar">DC</span></div></header>
@@ -31,7 +32,7 @@ export class AppComponent {
     if (!this.file) return;
     if (Number(this.overlap) > Number(this.chunkSize) * .5) { this.error = 'Overlap must be no more than 50% of the chunk size.'; return; }
     this.busy = true; this.error = ''; this.notice = ''; const body = new FormData(); body.append('file', this.file); body.append('strategy', this.strategy); body.append('chunk_size', String(this.chunkSize)); body.append('overlap', String(this.overlap)); if (preview) body.append('preview_count', '8');
-    this.http.post<ApiResult>(preview ? '/v1/preview' : '/v1/chunk', body).subscribe({ next: data => { this.result = data; this.isPreview = preview; this.busy = false; this.notice = preview ? 'Preview generated. Review boundaries before processing the full document.' : 'Document processed successfully. Output is ready to export.'; }, error: (e: HttpErrorResponse) => { this.busy = false; this.error = e.error?.detail || 'Could not process the document. Check that the API server is running.'; } });
+    this.http.post<ApiResult>(preview ? '`${this.apiUrl}/v1/preview' : '`${this.apiUrl}/v1/chunk', body).subscribe({ next: data => { this.result = data; this.isPreview = preview; this.busy = false; this.notice = preview ? 'Preview generated. Review boundaries before processing the full document.' : 'Document processed successfully. Output is ready to export.'; }, error: (e: HttpErrorResponse) => { this.busy = false; this.error = e.error?.detail || 'Could not process the document. Check that the API server is running.'; } });
   }
   metadataEntries(meta?: Record<string, unknown>): [string, unknown][] { return Object.entries(meta || {}).filter(([,v]) => v !== null && v !== undefined && typeof v !== 'object'); }
   downloadJson() { if (!this.result) return; const blob = new Blob([JSON.stringify(this.result, null, 2)], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${this.file?.name || 'document'}.chunks.json`; a.click(); URL.revokeObjectURL(url); }
