@@ -12,8 +12,8 @@
           "builder": "@angular-devkit/build-angular:application",
           "options": {
             "outputPath": {
-              "base": "../ui",
-              "browser": ""
+              "base": "dist/document-chunker",
+              "browser": "browser"
             },
             "index": "src/index.html",
             "browser": "src/main.ts",
