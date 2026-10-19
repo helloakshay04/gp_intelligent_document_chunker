@@ -8,8 +8,12 @@ from chunker_sdk import DocumentChunker, ChunkingConfig, __version__
 from chunker_sdk.extractors import SUPPORTED_EXTENSIONS
 from chunker_sdk.telemetry import span, get_metrics, prometheus_metrics, logger, record_call
 BASE_DIR=Path(__file__).resolve().parents[1]; UI_DIR=BASE_DIR/"ui"; engine=DocumentChunker()
-app=FastAPI(title="Document Chunker SDK API",version=__version__,description="Content-aware chunking with preview, metadata, structured logs and lightweight tracing.",docs_url=None,redoc_url=None,openapi_url=None)
-app.mount("/ui",StaticFiles(directory=UI_DIR),name="ui")
+app = FastAPI(
+    title="Global Payments Intelligent Document Chunker",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
+)app.mount("/ui",StaticFiles(directory=UI_DIR),name="ui")
 @app.middleware("http")
 async def request_observability(request:Request,call_next):
     trace_id=request.headers.get("x-trace-id") or uuid.uuid4().hex[:16]; request.state.trace_id=trace_id; started=time.perf_counter()
