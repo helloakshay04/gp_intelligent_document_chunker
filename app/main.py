@@ -7,12 +7,24 @@ from pydantic import BaseModel, Field, ValidationError
 from chunker_sdk import DocumentChunker, ChunkingConfig, __version__
 from chunker_sdk.extractors import SUPPORTED_EXTENSIONS
 from chunker_sdk.telemetry import span, get_metrics, prometheus_metrics, logger, record_call
+from fastapi.middleware.cors import CORSMiddleware
+
 BASE_DIR=Path(__file__).resolve().parents[1]; UI_DIR=BASE_DIR/"ui"; engine=DocumentChunker()
 app = FastAPI(
     title="Global Payments Intelligent Document Chunker",
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://subtle-chimera-be1593.netlify.app",
+        "http://localhost:4200",
+    ],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 app.mount("/ui",StaticFiles(directory=UI_DIR),name="ui")
 @app.middleware("http")
