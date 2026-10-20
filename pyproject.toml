@@ -7,7 +7,7 @@ version = "1.0.0"
 description = "Intelligent Document Chunker"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = ["pydantic>=2.14.1,<3", "pypdf>=6.21.1,<6", "openpyxl>=3.1.5,<4", "python-docx>=1.2.0,<2"]
+dependencies = ["pydantic>=2.14.1,<3", "pypdf>=6.21.1,<7", "openpyxl>=3.1.5,<4", "python-docx>=1.2.0,<2"]
 [project.optional-dependencies]
 api = ["fastapi>=0.151.0,<1", "uvicorn[standard]>=0.54.0,<1", "python-multipart>=0.0.32"]
 test = ["pytest>=8,<9", "httpx>=0.27,<1"]
