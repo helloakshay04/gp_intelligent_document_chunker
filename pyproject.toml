@@ -2,7 +2,7 @@
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 [project]
-name = "Intelligent Document Chunker SDK"
+name = "document-chunker-sdk"
 version = "1.0.0"
 description = "Intelligent Document Chunker"
 readme = "README.md"
