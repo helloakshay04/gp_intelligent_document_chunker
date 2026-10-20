@@ -40,86 +40,104 @@ interface ApiResult {
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <!-- LOGIN SCREEN -->
+    <!-- KITE-INSPIRED ADMIN LOGIN -->
     <div class="login-screen" *ngIf="!isLoggedIn">
-      <div class="login-background login-orb-one"></div>
-      <div class="login-background login-orb-two"></div>
+      <div class="kite-login-card">
 
-      <div class="login-card">
-        <div class="login-brand">
-          <div class="brand-mark">C</div>
-          <span>
-            Intelligent Document Chunker<span class="brand-dot">.</span>
+        <div class="kite-brand">
+          <div class="kite-logo">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+
+          <span class="kite-brand-name">
+            DOCUMENT CHUNKER
           </span>
+
+          <span class="kite-version">SDK</span>
         </div>
 
-        <div class="login-icon">↗</div>
+        <div class="kite-divider"></div>
 
-        <div class="login-heading">
-          <span class="eyebrow">SECURE WORKSPACE</span>
-          <h1>
-            Welcome back<span class="brand-dot">.</span>
-          </h1>
-          <p>
-            Select your administrator profile to continue
-            to your document intelligence workspace.
-          </p>
+        <div class="kite-heading">
+          <h1>Welcome back</h1>
+          <p>Choose your account to continue.</p>
         </div>
 
-        <div class="form-group login-form-group">
-          <label for="adminSelect">ADMINISTRATOR</label>
+        <div class="admin-options">
 
-          <select
-            id="adminSelect"
-            name="adminSelect"
-            [(ngModel)]="selectedAdmin"
+          <button
+            type="button"
+            class="admin-option"
+            [class.selected]="selectedAdmin === 'Akshay Kulkarni'"
+            [attr.aria-pressed]="selectedAdmin === 'Akshay Kulkarni'"
+            (click)="selectAdmin('Akshay Kulkarni')"
           >
-            <option value="Akshay Kulkarni">
-              Akshay Kulkarni
-            </option>
-            <option value="Pankaj Pandey">
-              Pankaj Pandey
-            </option>
-          </select>
+            <span class="kite-avatar">AK</span>
+
+            <span class="admin-details">
+              <strong>Akshay Kulkarni</strong>
+              <small>Administrator</small>
+            </span>
+
+            <span class="selection-indicator">
+              <span></span>
+            </span>
+          </button>
+
+          <button
+            type="button"
+            class="admin-option"
+            [class.selected]="selectedAdmin === 'Pankaj Pandey'"
+            [attr.aria-pressed]="selectedAdmin === 'Pankaj Pandey'"
+            (click)="selectAdmin('Pankaj Pandey')"
+          >
+            <span class="kite-avatar">PP</span>
+
+            <span class="admin-details">
+              <strong>Pankaj Pandey</strong>
+              <small>Administrator</small>
+            </span>
+
+            <span class="selection-indicator">
+              <span></span>
+            </span>
+          </button>
+
         </div>
 
-        <div class="selected-admin">
-          <div class="admin-avatar">
-            {{ getAdminInitials() }}
-          </div>
-
-          <div class="selected-admin-info">
-            <strong>{{ selectedAdmin }}</strong>
-            <span>Administrator</span>
-          </div>
-
-          <span class="admin-check">✓</span>
-        </div>
+        <p class="login-error" *ngIf="error">
+          {{ error }}
+        </p>
 
         <button
           type="button"
-          class="btn-primary login-button"
+          class="kite-continue"
           [disabled]="!selectedAdmin"
           (click)="login()"
         >
-          Sign in to workspace <span>→</span>
+          Continue <span>→</span>
         </button>
 
-        <p class="login-disclaimer">
-          <span class="tiny-green-dot"></span>
+        <div class="kite-security">
+          <span class="security-dot"></span>
           Document intelligence workspace
-        </p>
-
-        <div class="login-footer">
-          INTELLIGENT DOCUMENT CHUNKER · SDK
         </div>
+
+        <div class="kite-footer">
+          <span>INTELLIGENT DOCUMENT CHUNKER</span>
+          <span>VERSION 1.0</span>
+        </div>
+
       </div>
     </div>
 
-    <!-- EXISTING DOCUMENT CHUNKER DASHBOARD -->
+    <!-- MAIN APPLICATION -->
     <div class="app-shell" *ngIf="isLoggedIn">
 
       <header class="topbar">
+
         <div class="brand">
           <div class="brand-mark">C</div>
 
@@ -131,8 +149,14 @@ interface ApiResult {
         </div>
 
         <div class="top-actions">
-          <span class="status-dot"></span>
-          <span>Workspace</span>
+          <span
+            class="status-dot"
+            [class.status-offline]="healthStatus !== '200'"
+          ></span>
+
+          <span>
+            {{ healthStatus === '200' ? 'Connected' : 'API status unknown' }}
+          </span>
 
           <span class="divider"></span>
 
@@ -146,10 +170,7 @@ interface ApiResult {
           </button>
 
           <div class="user-profile" [title]="selectedAdmin">
-            <span class="avatar">
-              {{ getAdminInitials() }}
-            </span>
-
+            <span class="avatar">{{ getAdminInitials() }}</span>
             <span class="user-name">{{ selectedAdmin }}</span>
 
             <button
@@ -162,9 +183,11 @@ interface ApiResult {
             </button>
           </div>
         </div>
+
       </header>
 
       <aside class="sidebar">
+
         <div class="nav-caption">WORKSPACE</div>
 
         <button
@@ -181,7 +204,7 @@ interface ApiResult {
           type="button"
           class="nav-item"
           [class.active]="activeTab === 'history'"
-          (click)="activeTab = 'history'; showHistoryNotice()"
+          (click)="showHistoryNotice()"
         >
           <span class="nav-icon">◷</span>
           Processing history
@@ -190,11 +213,13 @@ interface ApiResult {
         <div class="side-bottom">
           <div class="version">DOCUMENT CHUNKER · SDK</div>
         </div>
+
       </aside>
 
       <main class="main-content">
 
         <div class="page-heading">
+
           <div>
             <div class="eyebrow">
               DOCUMENT INTELLIGENCE / CHUNKING
@@ -214,6 +239,7 @@ interface ApiResult {
             <span class="tiny-green-dot"></span>
             Workspace active
           </div>
+
         </div>
 
         <!-- METRICS -->
@@ -239,7 +265,11 @@ interface ApiResult {
             <div class="metric-label">CHUNK COUNT</div>
 
             <div class="metric-value">
-              {{ result?.total_chunks ?? (result ? result.chunks.length : '—') }}
+              {{
+                result
+                  ? (result.total_chunks ?? result.chunks.length)
+                  : '—'
+              }}
             </div>
 
             <div class="metric-foot">
@@ -288,10 +318,9 @@ interface ApiResult {
 
         </div>
 
-        <!-- WORKSPACE -->
+        <!-- CONFIGURATION AND OUTPUT -->
         <div class="workspace-grid">
 
-          <!-- CONFIGURATION PANEL -->
           <section class="panel config-panel">
 
             <div class="panel-header">
@@ -442,7 +471,7 @@ interface ApiResult {
 
           </section>
 
-          <!-- RESULTS PANEL -->
+          <!-- RESULTS -->
           <section class="panel results-panel">
 
             <div class="panel-header">
@@ -455,6 +484,7 @@ interface ApiResult {
               </div>
 
               <div class="output-actions" *ngIf="result">
+
                 <button
                   type="button"
                   class="small-btn"
@@ -470,6 +500,7 @@ interface ApiResult {
                 >
                   ↓ Export
                 </button>
+
               </div>
             </div>
 
@@ -504,13 +535,14 @@ interface ApiResult {
 
             </div>
 
-            <!-- RESULTS -->
+            <!-- GENERATED CHUNKS -->
             <div *ngIf="result" class="result-content">
 
               <div class="result-summary">
 
                 <div>
                   <span class="result-kicker">DOCUMENT</span>
+
                   <strong>
                     {{ result.document?.filename || file?.name }}
                   </strong>
@@ -518,6 +550,7 @@ interface ApiResult {
 
                 <div>
                   <span class="result-kicker">CHUNKS</span>
+
                   <strong>
                     {{ result.total_chunks ?? result.chunks.length }}
                   </strong>
@@ -525,6 +558,7 @@ interface ApiResult {
 
                 <div>
                   <span class="result-kicker">MODE</span>
+
                   <strong>
                     {{ isPreview ? 'Preview' : 'Full run' }}
                   </strong>
@@ -609,7 +643,9 @@ interface ApiResult {
           <span>
             <i></i>
             CHUNKING API
-            <b>{{ healthStatus === '200' ? 'OPERATIONAL' : 'UNVERIFIED' }}</b>
+            <b>
+              {{ healthStatus === '200' ? 'OPERATIONAL' : 'UNVERIFIED' }}
+            </b>
           </span>
         </footer>
 
@@ -641,7 +677,19 @@ export class AppComponent {
 
   constructor(private http: HttpClient) {}
 
-  // ADMIN LOGIN
+  // ADMIN SELECTION
+
+  selectAdmin(name: string): void {
+    if (
+      name !== 'Akshay Kulkarni' &&
+      name !== 'Pankaj Pandey'
+    ) {
+      return;
+    }
+
+    this.selectedAdmin = name;
+    this.error = '';
+  }
 
   getAdminInitials(): string {
     return this.selectedAdmin
@@ -656,22 +704,28 @@ export class AppComponent {
       this.selectedAdmin !== 'Akshay Kulkarni' &&
       this.selectedAdmin !== 'Pankaj Pandey'
     ) {
-      this.error = 'Please select a valid administrator.';
+      this.error = 'Please select an administrator.';
       return;
     }
 
     this.isLoggedIn = true;
     this.error = '';
     this.notice = '';
+    this.activeTab = 'chunk';
   }
 
   logout(): void {
     this.isLoggedIn = false;
     this.error = '';
     this.notice = '';
+    this.result = null;
+    this.file = null;
+    this.busy = false;
+    this.activeTab = 'chunk';
   }
 
   showHistoryNotice(): void {
+    this.activeTab = 'history';
     this.notice =
       'Processing history is not connected to a history API yet.';
   }
@@ -685,10 +739,8 @@ export class AppComponent {
     this.result = null;
     this.error = '';
     this.notice = '';
-
-    if (this.file) {
-      this.activeTab = 'chunk';
-    }
+    this.isPreview = false;
+    this.activeTab = 'chunk';
   }
 
   formatSize(bytes: number): string {
@@ -703,7 +755,7 @@ export class AppComponent {
     return `${(bytes / 1048576).toFixed(2)} MB`;
   }
 
-  // DOCUMENT CHUNKING
+  // CHUNKING API
 
   run(preview: boolean): void {
     if (!this.file || this.busy) {
@@ -713,8 +765,13 @@ export class AppComponent {
     const size = Number(this.chunkSize);
     const overlapValue = Number(this.overlap);
 
-    if (!Number.isFinite(size) || size < 100 || size > 10000) {
-      this.error = 'Chunk size must be between 100 and 10,000.';
+    if (
+      !Number.isFinite(size) ||
+      size < 100 ||
+      size > 10000
+    ) {
+      this.error =
+        'Chunk size must be between 100 and 10,000.';
       return;
     }
 
@@ -752,7 +809,9 @@ export class AppComponent {
       next: data => {
         this.result = {
           ...data,
-          chunks: Array.isArray(data?.chunks) ? data.chunks : []
+          chunks: Array.isArray(data?.chunks)
+            ? data.chunks
+            : []
         };
 
         this.isPreview = preview;
@@ -781,7 +840,7 @@ export class AppComponent {
     });
   }
 
-  // CHUNK METADATA
+  // METADATA
 
   metadataEntries(
     meta?: Record<string, unknown>
@@ -795,7 +854,7 @@ export class AppComponent {
       .map(([key, value]) => [key, String(value)]);
   }
 
-  // JSON EXPORT
+  // DOWNLOAD JSON
 
   downloadJson(): void {
     if (!this.result) {
@@ -824,6 +883,8 @@ export class AppComponent {
     URL.revokeObjectURL(url);
   }
 
+  // COPY JSON
+
   copyJson(): void {
     if (!this.result) {
       return;
@@ -842,17 +903,20 @@ export class AppComponent {
         this.error = '';
       })
       .catch(() => {
-        this.error = 'Clipboard access was blocked by the browser.';
+        this.error =
+          'Clipboard access was blocked by the browser.';
       });
   }
 
-  // BACKEND HEALTH CHECK
+  // API HEALTH CHECK
 
   checkHealth(): void {
     this.error = '';
     this.notice = '';
 
-    this.http.get<unknown>(`${this.apiUrl}/health`).subscribe({
+    this.http.get<unknown>(
+      `${this.apiUrl}/health`
+    ).subscribe({
       next: () => {
         this.healthStatus = '200';
         this.notice = 'API connection is healthy.';
