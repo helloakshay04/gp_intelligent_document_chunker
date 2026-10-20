@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 BASE_DIR=Path(__file__).resolve().parents[1]; UI_DIR=BASE_DIR/"ui"; engine=DocumentChunker()
 app = FastAPI(
-    title="Global Payments Intelligent Document Chunker",
+    title="Intelligent Document Chunker",
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
